@@ -1,0 +1,526 @@
+:root {
+  color-scheme: dark;
+  --bg-gradient: radial-gradient(circle at top, #1f2937 0, #020617 60%);
+  --accent-gold: #facc15;
+  --accent-red: #ef4444;
+  --accent-blue: #22c55e;
+  --text-main: #f9fafb;
+  --text-muted: #9ca3af;
+  --card-bg: rgba(15, 23, 42, 0.9);
+  --border-color: rgba(148, 163, 184, 0.3);
+}
+
+/* リセット系 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg-gradient);
+  color: var(--text-main);
+}
+
+/* ルートレイアウト */
+.app-root {
+  min-height: 100vh;
+}
+
+.app-container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+/* ヒーロー領域 */
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.hero-title {
+  font-size: clamp(28px, 5vw, 40px);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero-subtitle {
+  margin-top: 8px;
+  max-width: 540px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.hero-tag {
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  padding: 6px 14px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-gold);
+}
+
+/* メッセージ表示 */
+.message {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid var(--border-color);
+  font-size: 13px;
+}
+
+/* マッチカード周り */
+.match-section {
+  margin-bottom: 32px;
+}
+
+.match-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.match-label {
+  color: var(--accent-gold);
+}
+
+.match-id {
+  opacity: 0.8;
+}
+
+.match-card {
+  display: grid;
+  grid-template-columns: 1.2fr auto 1.2fr;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+/* ファイター情報 */
+.fighter-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fighter-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  margin-bottom: 6px;
+}
+
+.fighter-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fighter-name {
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.charity-region {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: none;
+  color: var(--accent-gold);
+  margin-top: 2px;
+}
+
+.charity-name {
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.total-amount {
+  margin-top: 2px;
+  font-size: 14px;
+  color: var(--accent-gold);
+}
+
+/* VS 部分 */
+.vs-column {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vs-text {
+  font-size: 18px;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+/* サイド選択ボタン */
+.side-button {
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-main);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
+}
+
+.side-button:hover {
+  background: rgba(148, 163, 184, 0.12);
+  transform: translateY(-1px);
+}
+
+.side-button-active {
+  background: rgba(234, 179, 8, 0.16);
+  border-color: var(--accent-gold);
+}
+
+/* 円グラフエリア */
+.totals-donut-area {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.totals-donut-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+}
+
+.totals-donut {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  padding: 10px;
+}
+
+.totals-donut-center {
+  position: absolute;
+  inset: 30px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.totals-donut-total {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.totals-donut-label {
+  font-size: 20px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* 凡例：左右に分けて表示 */
+.totals-donut-legend {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 24px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.totals-donut-legend-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  max-width: 200px;
+}
+
+.totals-donut-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  margin-top: 4px;
+}
+
+.totals-donut-swatch-a {
+  background: var(--accent-red);
+}
+
+.totals-donut-swatch-b {
+  background: var(--accent-blue);
+}
+
+/* ベットフォーム */
+.bet-section {
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.section-caption {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.form-row {
+  margin-bottom: 12px;
+}
+
+.input-label {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  gap: 4px;
+}
+
+.input {
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: rgba(15, 23, 42, 0.9);
+  color: var(--text-main);
+  font-size: 13px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+
+/* メインボタン */
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  background: linear-gradient(90deg, #f59e0b, #eab308);
+  color: #111827;
+  transition: transform 0.1s ease, filter 0.1s ease;
+}
+
+.primary-button:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.primary-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+  transform: none;
+}
+
+/* 予備（読み込み中テキスト） */
+.loading-text {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* レスポンシブ */
+@media (max-width: 768px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .match-card {
+    grid-template-columns: 1fr;
+  }
+
+  .vs-column {
+    order: -1;
+  }
+
+  .vs-text {
+    margin-bottom: 4px;
+  }
+
+  .totals-donut-area {
+    margin-top: 16px;
+  }
+}
+
+
+.selected-summary {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: baseline;
+  font-size: 12px;
+}
+
+.selected-label {
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.selected-name {
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.selected-region {
+  margin-left: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.selected-none {
+  color: var(--text-muted);
+}
+
+/* 選択中ファイターのハイライト */
+.fighter-column-selected {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 4px;
+}
+
+/* 試合終了ボタン（デモ） */
+.end-match-row {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.secondary-button {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-main);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: rgba(148, 163, 184, 0.12);
+  transform: translateY(-1px);
+}
+
+.secondary-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* 結果バナー */
+.result-section {
+  margin-top: 20px;
+}
+
+.result-banner {
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--accent-gold);
+  background: radial-gradient(
+    circle at top,
+    rgba(250, 204, 21, 0.12),
+    rgba(15, 23, 42, 0.95)
+  );
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.result-label {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-gold);
+  margin-bottom: 4px;
+}
+
+.result-main {
+  min-width: 160px;
+}
+
+.result-winner-title {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.result-winner-name {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.result-winner-region {
+  font-size: 12px;
+  color: var(--text-main);
+  margin-top: 2px;
+}
+
+.result-totals {
+  min-width: 160px;
+  font-size: 12px;
+}
+
+.result-totals-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.result-totals-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text-main);
+}
+
+/* 小さい画面用の調整 */
+@media (max-width: 768px) {
+  .result-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
