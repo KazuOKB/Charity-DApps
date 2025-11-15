@@ -2,6 +2,8 @@
 
 This is a Sui-based dApp that collects funds before a match and automatically sends the pooled money to predefined addresses depending on the match result.
 
+[SuiOne_Relation.pdf](https://github.com/user-attachments/files/23560172/SuiOne_Relation.pdf)
+
 ## Directory structure
 
 - `contracts`: Sui Move contracts. Build, test, and deploy the on-chain logic here.
