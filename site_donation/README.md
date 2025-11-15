@@ -1,40 +1,53 @@
-# Mint dApp 完成版（お手本リポジトリ）
+ Charity Bet DApps
 
-このフォルダは Chapter 4 ワークショップの完成形サンプルです。ワークショップ用の課題フォルダ `mint_site_workshop/` で詰まったときに、画面構成・ディレクトリ構造・実装コードの正解例として参照してください。
+This is a Sui-based dApp that collects funds before a match and automatically sends the pooled money to predefined addresses depending on the match result.
 
-## プロジェクト概要
-- フレームワーク: React + TypeScript + Vite
-- UI ライブラリ: Radix UI
-- Sui 連携: `@mysten/dapp-kit`
-- 主なコンポーネント: `App`, `WalletStatus`, `MintButton`
-- Move コントラクトと連動し、ウォレット接続および NFT のミントが可能
+## Directory structure
 
-## ファイル構成
-- `src/` — フロントエンドの実装本体
-  - `App.tsx` — 画面全体のレイアウト
-  - `WalletStatus.tsx` — ウォレット接続状況の表示
-  - `MintButton.tsx` — NFT ミント処理の完成版
-- `.env` — ワークショップで使用するサンプル設定（パッケージ ID など）が記入済み
-- `vite.config.mts` / `tsconfig.json` など — Vite / TypeScript の設定
+- `contracts`: Sui Move contracts. Build, test, and deploy the on-chain logic here.
+- `site_donation`: Frontend application for the charity betting experience.
 
-## 使い方
-1. Dev Container が起動すると、`pnpm` と依存関係は自動でセットアップされています。
-2. 動作確認を行う際は、プロジェクト直下で開発サーバーを起動してください。
-   ```bash
-   pnpm dev
-   ```
-3. ブラウザで表示し、ウォレット接続や NFT ミントの挙動を確認します。
-4. ビルド確認をしたい場合は下記コマンドを利用できます。
-   ```bash
-   pnpm build
-   ```
+## How to run frontend
 
-## ワークショップ参加者へのヒント
-- 課題用フォルダ `mint_site_workshop/` とファイルを比較しながら、自分の実装との差分を確認しましょう。
-- `MintButton.tsx` や `WalletStatus.tsx` などは段階的に未完成パーツが用意されています。行き詰まったら、この完成版の同ファイルを見て挙動の意図を理解してください。
-- `.env` の設定例もこのフォルダに含まれています。自分のフォルダに取り込む際は、必ず自分で Publish したパッケージ ID へ置き換えてください。
+```
+cd site_donation
+npm install
+npm run dev
+```
 
-## 関連リポジトリ
-- `mint_site_workshop/` — 参加者が自力で完成させるための演習用プロジェクト。
+## How to build and run Move contracts
 
-このサンプルをガイドとして活用しながら、ワークショップ課題をクリアしていきましょう。
+```
+cd contracts
+sui move build
+```
+
+# publish & call examples
+```
+sui client publish --gas-budget <GAS_BUDGET>
+```
+# Example: call `bet`
+```
+sui client call \
+  --package <PACKAGE_ID> \
+  --module charity_bet \
+  --function bet \
+  --args <ARGUMENTS_FOR_BET> \
+  --gas-budget <GAS_BUDGET>
+```
+
+# Example: call `settle`
+```
+sui client call \
+  --package <PACKAGE_ID> \
+  --module charity_bet \
+  --function settle \
+  --args <ARGUMENTS_FOR_SETTLE> \
+  --gas-budget <GAS_BUDGET>
+```
+
+## Recommended environment
+- Node.js 18 or later
+- Package manager: `pnpm`（a `pnpm-lock.yaml` is included in this repository）
+- Sui CLI
+
