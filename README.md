@@ -26,14 +26,14 @@ sui move build
 ```
 sui client publish --gas-budget <GAS_BUDGET>
 ```
-# Example: call `bet`
+# How to create an event
 ```
 sui client call \
-  --package <PACKAGE_ID> \
+  --package <Package ID>  \
   --module charity_bet \
-  --function bet \
-  --args <ARGUMENTS_FOR_BET> \
-  --gas-budget <GAS_BUDGET>
+  --function create_event \
+  --args <address A> <address B> 3000 0x6 \
+  --gas-budget 100000000
 ```
 
 # Example: call `settle`
