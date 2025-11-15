@@ -8,7 +8,11 @@ module charity_bet::charity_bet {
     use sui::event;
     use sui::clock::{Self as clock, Clock};
 
-    // 文字列用
+    // NFT をウォレット表示するための Display 用
+    use sui::display;
+    use sui::package;
+
+    // String
     use std::string::{Self as string, String};
 
     /// エラーコード
@@ -17,15 +21,13 @@ module charity_bet::charity_bet {
     const E_DEADLINE_NOT_REACHED: u64 = 3;
     const E_INVALID_SIDE: u64 = 4;
 
-    /// NFT 用の画像 URL（vector<u8> の定数）
-    /// TODO: ここをあなたの実際の画像 URL に差し替えてください
+    /// NFT 用の画像 URL
+    /// とりあえず今わかっている Walrus の URL を両方に入れてあります。
+    /// あとで別々の URL に変えたければ、この 2 行だけ書き換えれば OK です。
     const IMAGE_URL_A: vector<u8> = b"https://aggregator.walrus-testnet.walrus.space/v1/blobs/by-object-id/0x62aec7955c529cda055f3d8e90b23c7da09e8e00e9a9d41ffe16923a825322af";
-    
     const IMAGE_URL_B: vector<u8> = b"https://aggregator.walrus-testnet.walrus.space/v1/blobs/by-object-id/0x4dfaec5d59d3ab620ba1cf0d28771fa69f352bf4026907042cc71a3b8b9cd570";
 
     /// 1試合（1マッチ）に対応する shared object
-    /// - 寄付は SUI 固定
-    /// - 勝者側の charity に vault の中身を全額送金する
     public struct CharityBetEvent has key {
         id: UID,
 
@@ -72,16 +74,50 @@ module charity_bet::charity_bet {
     }
 
     /// サポーター NFT
-    /// - event_id: どの試合に対する寄付か
-    /// - donor: 寄付者
-    /// - side: 1 = A, 2 = B
-    /// - image_url: NFT 画像の URL 文字列
     public struct SupporterNFT has key, store {
         id: UID,
         event_id: ID,
         donor: address,
+        /// 1 = A, 2 = B
         side: u8,
         image_url: String,
+    }
+
+    /// ★ Display 初期化用の One-Time Witness
+    /// モジュール名 charity_bet の大文字版 = CHARITY_BET にする必要がある
+    public struct CHARITY_BET has drop {}
+
+    /// ★ パッケージ publish 時に 1 度だけ呼ばれる init。
+    /// ここで SupporterNFT 用の Display<SupporterNFT> を作る。
+    fun init(otw: CHARITY_BET, ctx: &mut TxContext) {
+        let publisher = package::claim(otw, ctx);
+
+        // Display のキー
+        let keys = vector[
+            string::utf8(b"name"),
+            string::utf8(b"description"),
+            string::utf8(b"image_url"),
+        ];
+
+        // Display の値（テンプレート）
+        // {event_id}, {side}, {image_url} は SupporterNFT のフィールドから埋め込まれる
+        let values = vector[
+            string::utf8(b"ONE Charity Bet Supporter"),
+            string::utf8(b"Supporter of event {event_id}, side {side}"),
+            string::utf8(b"{image_url}"),
+        ];
+
+        let mut display_obj = display::new_with_fields<SupporterNFT>(
+            &publisher,
+            keys,
+            values,
+            ctx,
+        );
+        display::update_version(&mut display_obj);
+
+        let sender = tx_context::sender(ctx);
+        transfer::public_transfer(publisher, sender);
+        transfer::public_transfer(display_obj, sender);
     }
 
     /// 新しい試合を作成して shared object 化する。
@@ -94,7 +130,6 @@ module charity_bet::charity_bet {
         ctx: &mut TxContext
     ) {
         let now = clock::timestamp_ms(clock_obj);
-        // トランザクション送信者が admin
         let admin_addr = tx_context::sender(ctx);
 
         let event = CharityBetEvent {
@@ -119,13 +154,14 @@ module charity_bet::charity_bet {
         side: u8,
         ctx: &mut TxContext
     ) {
-        // 画像 URL を side ごとに選択して String に変換
-        let image_url = if (side == 1) {
-            string::utf8(IMAGE_URL_A)
-        } else {
-            string::utf8(IMAGE_URL_B)
-        };
+        let url_bytes =
+            if (side == 1) {
+                IMAGE_URL_A
+            } else {
+                IMAGE_URL_B
+            };
 
+        let image_url = string::utf8(url_bytes);
         let donor = tx_context::sender(ctx);
         let event_id = object::uid_to_inner(&event.id);
 
@@ -137,7 +173,6 @@ module charity_bet::charity_bet {
             image_url,
         };
 
-        // 寄付者へ NFT を送る
         transfer::transfer(nft, donor)
     }
 
@@ -158,11 +193,10 @@ module charity_bet::charity_bet {
         } else if (side == 2) {
             event.total_b = event.total_b + amount
         } else {
-            // side が不正なら abort
             abort E_INVALID_SIDE
         };
 
-        // Event emit（オフチェーンから追跡しやすくする）
+        // 寄付イベントを emit
         let event_id = object::uid_to_inner(&event.id);
         let donor = tx_context::sender(ctx);
         event::emit(Donation {
@@ -172,11 +206,11 @@ module charity_bet::charity_bet {
             amount,
         });
 
-        // ★ 寄付ごとにサポーターNFTをミント
+        // ★ 寄付ごとにサポーター NFT をミント
         mint_nft_for_donor(event, side, ctx)
     }
 
-    /// 「選手 A に寄付する」＝勝ったら charity_a に寄付される側
+    /// 「選手 A に寄付する」
     public entry fun donate_for_a(
         event: &mut CharityBetEvent,
         payment: Coin<SUI>,
