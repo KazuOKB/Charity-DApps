@@ -1,61 +1,46 @@
-// src/lib/buildBetTx.ts
+// site_donation/src/lib/buildBetTx.ts
 
 import { Transaction } from "@mysten/sui/transactions";
 import {
-  BET_TARGET,
+  PACKAGE_ID,
+  MODULE_NAME,
   EVENT_ID,
   MIST_PER_SUI,
 } from "../config/contract";
 
-// フロント側で "A" / "B" を扱う前提
 export type Side = "A" | "B";
 
-export interface BuildBetTxParams {
-  side: Side;        // どちらの選手にベットするか
-  amountSui: number; // 何 SUI ベットするか（例: 0.1）
-}
+type BuildBetTxParams = {
+  side: Side;
+  amountSui: number;
+};
 
-/**
- * charity_bet::bet を呼ぶための Transaction を組み立てる関数。
- *
- * 例：
- *   const tx = buildBetTx({ side: "A", amountSui: 0.1 });
- *   signAndExecuteTransaction({ transaction: tx, ... });
- */
-export function buildBetTx(params: BuildBetTxParams): Transaction {
-  const { side, amountSui } = params;
-
+export function buildBetTx({ side, amountSui }: BuildBetTxParams) {
   const tx = new Transaction();
 
-  // ===== 1. 送金額（SUI → MIST）を計算 =====
-  // amountSui は 0.1 / 0.5 / 1 などの小さめの値を想定しています。
-  // そのため number で扱って問題ない前提で、MIST に変換します。
-  const amountMist = Math.floor(amountSui * MIST_PER_SUI); // number
+  // SUI → MIST（整数）
+  const amountMist = Math.round(amountSui * MIST_PER_SUI);
+  if (amountMist <= 0) {
+    throw new Error("Bet amount must be positive");
+  }
 
-  // ===== 2. ガスコインから指定量を切り出す =====
-  // tx.splitCoins(tx.gas, [tx.pure('u64', ...)]) は
-  // 「ガスコインから指定量の新しい Coin<SUI> を 1 個作る」という意味です。
-  const [betCoin] = tx.splitCoins(tx.gas, [
-    tx.pure("u64", amountMist),
-  ]);
+  // ガスコインから支払い用のコインを取り出す
+  const [betCoin] = tx.splitCoins(tx.gas, [amountMist]);
 
-  // ===== 3. サイドを 0/1 の u8 に変換 =====
-  // Move 側のシグネチャが
-  //   fun bet(event: &mut Event, side: u8, bet_coin: Coin<SUI>, ctx: &mut TxContext)
-  // という形を想定しています。
-  const sideValue = side === "A" ? 0 : 1;
+  // サイドに応じて呼ぶ関数を切り替え
+  const fnName = side === "A" ? "donate_for_a" : "donate_for_b";
+  const target: string = `${PACKAGE_ID}::${MODULE_NAME}::${fnName}`;
+  console.log("moveCall target =", target, "amountMist =", amountMist);
 
-  // ===== 4. Move 関数呼び出しを組み立てる =====
+  // Move: public entry fun donate_for_a(event: &mut CharityBetEvent, payment: Coin<SUI>, ctx: &mut TxContext)
   tx.moveCall({
-    target: BET_TARGET, // `${PACKAGE_ID}::${MODULE_NAME}::${FUNCTION_NAME}`
+    target: target,
     arguments: [
-      tx.object(EVENT_ID),       // &mut Event (shared object)
-      tx.pure("u8", sideValue),  // u8 サイド
-      betCoin,                   // Coin<SUI>
-      // ※ Move 側で他に引数がある場合はここに追加
+      tx.object(EVENT_ID), // &mut CharityBetEvent（shared object）
+      betCoin,             // Coin<SUI>
+      // TxContext は自動で渡されるので何も書かなくてよい
     ],
   });
 
-  // あとはウォレット側で sign & execute してもらう前提
   return tx;
 }

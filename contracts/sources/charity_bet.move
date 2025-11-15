@@ -8,11 +8,20 @@ module charity_bet::charity_bet {
     use sui::event;
     use sui::clock::{Self as clock, Clock};
 
+    // 文字列用
+    use std::string::{Self as string, String};
+
     /// エラーコード
     const E_NOT_ADMIN: u64 = 1;
     const E_ALREADY_SETTLED: u64 = 2;
     const E_DEADLINE_NOT_REACHED: u64 = 3;
     const E_INVALID_SIDE: u64 = 4;
+
+    /// NFT 用の画像 URL（vector<u8> の定数）
+    /// TODO: ここをあなたの実際の画像 URL に差し替えてください
+    const IMAGE_URL_A: vector<u8> = b"https://aggregator.walrus-testnet.walrus.space/v1/blobs/by-object-id/0x62aec7955c529cda055f3d8e90b23c7da09e8e00e9a9d41ffe16923a825322af";
+    
+    const IMAGE_URL_B: vector<u8> = b"https://aggregator.walrus-testnet.walrus.space/v1/blobs/by-object-id/0x4dfaec5d59d3ab620ba1cf0d28771fa69f352bf4026907042cc71a3b8b9cd570";
 
     /// 1試合（1マッチ）に対応する shared object
     /// - 寄付は SUI 固定
@@ -62,6 +71,19 @@ module charity_bet::charity_bet {
         total_amount: u64,
     }
 
+    /// サポーター NFT
+    /// - event_id: どの試合に対する寄付か
+    /// - donor: 寄付者
+    /// - side: 1 = A, 2 = B
+    /// - image_url: NFT 画像の URL 文字列
+    public struct SupporterNFT has key, store {
+        id: UID,
+        event_id: ID,
+        donor: address,
+        side: u8,
+        image_url: String,
+    }
+
     /// 新しい試合を作成して shared object 化する。
     /// duration_ms: 現在時刻からどれだけの期間寄付を受け付けるか（ミリ秒）
     public entry fun create_event(
@@ -91,6 +113,34 @@ module charity_bet::charity_bet {
         transfer::share_object(event)
     }
 
+    /// サポーター NFT をミントして寄付者に送る内部関数
+    fun mint_nft_for_donor(
+        event: &CharityBetEvent,
+        side: u8,
+        ctx: &mut TxContext
+    ) {
+        // 画像 URL を side ごとに選択して String に変換
+        let image_url = if (side == 1) {
+            string::utf8(IMAGE_URL_A)
+        } else {
+            string::utf8(IMAGE_URL_B)
+        };
+
+        let donor = tx_context::sender(ctx);
+        let event_id = object::uid_to_inner(&event.id);
+
+        let nft = SupporterNFT {
+            id: object::new(ctx),
+            event_id,
+            donor,
+            side,
+            image_url,
+        };
+
+        // 寄付者へ NFT を送る
+        transfer::transfer(nft, donor)
+    }
+
     /// 内部ヘルパー：A / B どちらかへの寄付共通処理
     fun deposit_internal(
         event: &mut CharityBetEvent,
@@ -108,7 +158,7 @@ module charity_bet::charity_bet {
         } else if (side == 2) {
             event.total_b = event.total_b + amount
         } else {
-            // side が不正なら abort（vault に入れる前に弾いているので資金は失われない設計も可）
+            // side が不正なら abort
             abort E_INVALID_SIDE
         };
 
@@ -120,7 +170,10 @@ module charity_bet::charity_bet {
             donor,
             side,
             amount,
-        })
+        });
+
+        // ★ 寄付ごとにサポーターNFTをミント
+        mint_nft_for_donor(event, side, ctx)
     }
 
     /// 「選手 A に寄付する」＝勝ったら charity_a に寄付される側
