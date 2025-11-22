@@ -1,4 +1,4 @@
-# Charity Bet DApps
+# Charity DApps
 
 This is a Sui-based dApp that collects funds before a match and automatically sends the pooled money to predefined addresses depending on the match result.
 
