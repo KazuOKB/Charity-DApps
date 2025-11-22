@@ -19,7 +19,7 @@
   // 起動毎に最新の Sui CLI へ更新
   "postStartCommand": "bash .devcontainer/update-on-start.sh",
   // コンテナ作成時に corepack で pnpm を有効化し、mint_site 配下で初回依存関係をインストール
-  "postCreateCommand": "corepack enable && corepack prepare pnpm@latest --activate && cd mint_site && (pnpm install --frozen-lockfile || pnpm install)",
+  "postCreateCommand": "corepack enable && corepack prepare pnpm@latest --activate && cd site_donation && (pnpm install --frozen-lockfile || pnpm install)",
   // ~/.local/bin を先頭に追加して優先解決
   "remoteEnv": {
     "PATH": "${containerEnv:HOME}/.local/bin:${containerEnv:PATH}"
